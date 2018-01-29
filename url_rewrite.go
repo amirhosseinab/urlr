@@ -11,7 +11,6 @@ type (
 		Options *Options
 	}
 
-	//SchemeHeader: X-Forwarded-Proto
 	Options struct {
 		AcceptHTTP   bool
 		AcceptWWW    bool
@@ -21,6 +20,14 @@ type (
 
 func New(opt *Options) *URLRewrite {
 	return &URLRewrite{opt}
+}
+
+func Default() *URLRewrite {
+	return New(&Options{
+		AcceptHTTP:   false,
+		AcceptWWW:    false,
+		SchemeHeader: "X-Forwarded-Proto",
+	})
 }
 
 func (u *URLRewrite) Handler(handler http.Handler) http.Handler {
