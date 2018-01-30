@@ -1,4 +1,4 @@
-package urlrewrite
+package urlr
 
 import (
 	"fmt"
@@ -38,22 +38,21 @@ func (u *URLRewrite) Handler(handler http.Handler) http.Handler {
 }
 
 func rewrite(w http.ResponseWriter, r *http.Request, opt *Options) {
-	scheme := strings.ToLower(r.Header.Get(opt.SchemeHeader))
+	scheme := r.Header.Get(opt.SchemeHeader)
 	host := r.Host
-
-	targetScheme := scheme
-	bareHost := strings.TrimPrefix(r.Host, "www.")
+	rewrite := false
 
 	if !opt.AcceptHTTP && scheme == "http" {
 		scheme = "https"
+		rewrite = true
+	}
+	if !opt.AcceptWWW && strings.HasPrefix(host, "www.") {
+		host = strings.TrimPrefix(r.Host, "www.")
+		rewrite = true
 	}
 
-	if !opt.AcceptWWW && strings.HasPrefix(host, "www") {
-		host = bareHost
-	}
-
-	if scheme != targetScheme || host != bareHost {
-		url := fmt.Sprintf("%v://%v%v", scheme, host, r.RequestURI)
+	if rewrite {
+		url := fmt.Sprintf("%s://%s%s", scheme, host, r.URL.Path)
 		http.Redirect(w, r, url, http.StatusPermanentRedirect)
 	}
 }
